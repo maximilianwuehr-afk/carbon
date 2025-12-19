@@ -25,6 +25,25 @@ app.use(
   })
 );
 
+// Root route
+app.get('/', (c) => {
+  return c.json({
+    name: 'Carbon API',
+    version: '0.1.0',
+    description: 'Local-first Markdown notes with sync and Google Workspace integration',
+    endpoints: {
+      health: '/health',
+      notes: '/notes',
+      sync: '/sync',
+      files: '/files',
+      calendar: '/calendar',
+      drive: '/drive',
+      chat: '/chat',
+      auth: '/auth',
+    },
+  });
+});
+
 // Health check
 app.get('/health', (c) => {
   return c.json({ status: 'ok', timestamp: new Date().toISOString() });
