@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Calendar, FolderOpen, ChevronRight, Plus } from 'lucide-react';
+import { calendarApi, driveApi } from '../../lib/api';
 
 type Tab = 'calendar' | 'drive';
 
@@ -50,14 +51,14 @@ function CalendarTab() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['calendar-events', today],
     queryFn: async () => {
-      const res = await fetch(`/api/calendar/events?date=${today}`);
-      if (!res.ok) {
-        if (res.status === 401) {
+      try {
+        return await calendarApi.events(today);
+      } catch (err: any) {
+        if (err.message?.includes('401') || err.message?.includes('Not authenticated')) {
           return { needsAuth: true, events: [] };
         }
-        throw new Error('Failed to fetch events');
+        throw err;
       }
-      return res.json();
     },
   });
 
@@ -133,14 +134,14 @@ function DriveTab() {
   const { data, isLoading } = useQuery({
     queryKey: ['drive-recent'],
     queryFn: async () => {
-      const res = await fetch('/api/drive/files/recent');
-      if (!res.ok) {
-        if (res.status === 401) {
+      try {
+        return await driveApi.recent();
+      } catch (err: any) {
+        if (err.message?.includes('401') || err.message?.includes('Not authenticated')) {
           return { needsAuth: true, files: [] };
         }
-        throw new Error('Failed to fetch files');
+        throw err;
       }
-      return res.json();
     },
   });
 

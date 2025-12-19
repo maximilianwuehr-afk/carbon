@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ChevronRight,
   ChevronDown,
@@ -9,6 +9,7 @@ import {
   Plus,
 } from 'lucide-react';
 import type { TreeNode } from '@carbon/core';
+import { notesApi } from '../../lib/api';
 
 interface SidebarProps {
   selectedPath: string | null;
@@ -20,15 +21,34 @@ export function Sidebar({ selectedPath, onSelectNote }: SidebarProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     new Set(['Daily notes', 'People', 'Meetings'])
   );
+  const queryClient = useQueryClient();
 
   // Fetch folder tree
   const { data: treeData } = useQuery({
     queryKey: ['tree'],
-    queryFn: async () => {
-      const res = await fetch('/api/notes/tree');
-      return res.json();
+    queryFn: () => notesApi.tree(),
+  });
+
+  // Create new note mutation
+  const createNoteMutation = useMutation({
+    mutationFn: async (path: string) => {
+      const note = await notesApi.create(path, '');
+      return note;
+    },
+    onSuccess: (data, path) => {
+      queryClient.invalidateQueries({ queryKey: ['tree'] });
+      onSelectNote(path);
     },
   });
+
+  const handleCreateNote = () => {
+    const noteName = prompt('Enter note name:');
+    if (!noteName) return;
+    
+    // Ensure it ends with .md
+    const path = noteName.endsWith('.md') ? noteName : `${noteName}.md`;
+    createNoteMutation.mutate(path);
+  };
 
   const tree: TreeNode[] = treeData?.tree || [];
 
@@ -115,7 +135,9 @@ export function Sidebar({ selectedPath, onSelectNote }: SidebarProps) {
             />
           </div>
           <button
-            className="p-1.5 rounded hover:bg-secondary transition-colors"
+            onClick={handleCreateNote}
+            disabled={createNoteMutation.isPending}
+            className="p-1.5 rounded hover:bg-secondary transition-colors disabled:opacity-50"
             title="New note"
           >
             <Plus className="w-4 h-4" />

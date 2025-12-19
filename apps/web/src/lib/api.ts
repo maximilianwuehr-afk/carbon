@@ -30,6 +30,11 @@ export const notesApi = {
   list: () => fetchApi<{ notes: any[] }>('/notes'),
   tree: () => fetchApi<{ tree: any[] }>('/notes/tree'),
   get: (path: string) => fetchApi<{ note: any }>(`/notes/${encodeURIComponent(path)}`),
+  create: (path: string, markdown: string = '') =>
+    fetchApi<{ note: any }>(`/notes/${encodeURIComponent(path)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ markdown }),
+    }),
   save: (path: string, markdown: string) =>
     fetchApi<{ note: any }>(`/notes/${encodeURIComponent(path)}`, {
       method: 'PUT',
