@@ -5,7 +5,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
-import { serveStatic } from 'hono/node-server/serve-static';
+import { serveStatic } from '@hono/node-server/serve-static';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
