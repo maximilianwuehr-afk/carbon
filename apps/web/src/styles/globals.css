@@ -5,18 +5,15 @@
 /*
  * Carbon Design System
  * 
- * Aesthetic: Bauhaus + Dieter Rams
- * - "Less but better" (Weniger, aber besser)
- * - Form follows function
- * - Strict geometric grid (4px base unit)
+ * Aesthetic: Teenage Engineering + Bauhaus
+ * - Strict grid (4px base unit)
  * - Generous whitespace
  * - Bold typographic hierarchy
- * - No ornamentation - pure function
- * - Sharp corners, geometric shapes only
- * - Strong borders, clear separation
- * - Monochrome base + one strong accent (rgb(253, 185, 47))
+ * - Minimal chrome
+ * - Monochrome base + one strong accent (Orange #FF6B35)
  * - Grotesk + mono font pairing
- * - Immediate, functional interactions
+ * - Crisp controls
+ * - Subtle micro-interactions
  */
 
 @layer base {
@@ -31,8 +28,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 4%;
     
-    /* Primary: Strong accent (rgb(253, 185, 47)) */
-    --primary: 40 98% 59%;
+    /* Primary: Strong orange accent */
+    --primary: 18 100% 60%;
     --primary-foreground: 0 0% 100%;
     
     --secondary: 0 0% 96%;
@@ -41,17 +38,17 @@
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
     
-    --accent: 40 98% 59%;
+    --accent: 18 100% 60%;
     --accent-foreground: 0 0% 100%;
     
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     
-    --border: 0 0% 85%;
-    --input: 0 0% 95%;
-    --ring: 40 98% 59%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 18 100% 60%;
     
-    --radius: 0px;
+    --radius: 4px;
   }
 
   .dark {
@@ -64,7 +61,7 @@
     --popover: 0 0% 8%;
     --popover-foreground: 0 0% 98%;
     
-    --primary: 40 98% 59%;
+    --primary: 18 100% 60%;
     --primary-foreground: 0 0% 4%;
     
     --secondary: 0 0% 15%;
@@ -73,15 +70,15 @@
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 64%;
     
-    --accent: 40 98% 59%;
+    --accent: 18 100% 60%;
     --accent-foreground: 0 0% 4%;
     
     --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 98%;
     
-    --border: 0 0% 25%;
-    --input: 0 0% 15%;
-    --ring: 40 98% 59%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 18 100% 60%;
   }
 }
 
@@ -95,23 +92,21 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
-  /* Typography hierarchy - Bauhaus: Strong, clear, functional */
+  /* Typography hierarchy */
   h1 {
-    @apply text-3xl font-bold tracking-tighter;
-    letter-spacing: -0.02em;
+    @apply text-3xl font-bold tracking-tight;
   }
   
   h2 {
-    @apply text-2xl font-bold tracking-tight;
-    letter-spacing: -0.01em;
+    @apply text-2xl font-semibold tracking-tight;
   }
   
   h3 {
-    @apply text-xl font-bold;
+    @apply text-xl font-semibold;
   }
   
   h4 {
-    @apply text-lg font-semibold;
+    @apply text-lg font-medium;
   }
   
   /* Strict grid alignment */
@@ -119,9 +114,9 @@
     @apply gap-4;
   }
   
-  /* Minimal chrome - functional focus states (Dieter Rams: honest, unobtrusive) */
+  /* Minimal chrome - clean focus states */
   *:focus-visible {
-    @apply outline-none ring-2 ring-ring ring-offset-0;
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 }
 
@@ -129,52 +124,48 @@
   /* Carbon-specific component styles */
   
   .carbon-panel {
-    @apply bg-card border-2 border-border;
+    @apply bg-card border border-border;
   }
   
   .carbon-panel-header {
-    @apply px-4 py-3 border-b-2 border-border font-bold text-xs uppercase tracking-widest text-foreground;
-    letter-spacing: 0.1em;
+    @apply px-4 py-3 border-b border-border font-medium text-sm uppercase tracking-wider text-muted-foreground;
   }
   
   .carbon-input {
-    @apply bg-background border-2 border-input px-4 py-2 text-sm;
-    @apply focus:border-primary focus:ring-2 focus:ring-primary;
+    @apply bg-background border border-input px-3 py-2 text-sm;
+    @apply focus:border-primary focus:ring-1 focus:ring-primary;
     @apply placeholder:text-muted-foreground;
   }
   
   .carbon-button {
-    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-semibold;
-    @apply bg-primary text-primary-foreground border-2 border-primary;
-    @apply hover:bg-primary/95 active:bg-primary/90;
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0;
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium;
+    @apply bg-primary text-primary-foreground;
+    @apply hover:bg-primary/90;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
     @apply disabled:pointer-events-none disabled:opacity-50;
-    @apply transition-none;
+    @apply transition-colors;
   }
   
   .carbon-button-secondary {
-    @apply bg-secondary text-secondary-foreground border-2 border-border;
-    @apply hover:bg-secondary/90 active:bg-secondary/85;
-    @apply transition-none;
+    @apply bg-secondary text-secondary-foreground;
+    @apply hover:bg-secondary/80;
   }
   
   .carbon-button-ghost {
-    @apply bg-transparent text-foreground border-2 border-transparent;
-    @apply hover:bg-secondary hover:border-border;
-    @apply transition-none;
-  }
-  
-  /* Functional interactions - immediate, honest (Dieter Rams) */
-  .carbon-hover {
-    @apply transition-none;
+    @apply bg-transparent text-foreground;
     @apply hover:bg-secondary;
   }
   
-  /* Wiki-link styling - functional, clear */
+  /* Subtle micro-interactions */
+  .carbon-hover {
+    @apply transition-all duration-150;
+    @apply hover:bg-secondary/50;
+  }
+  
+  /* Wiki-link styling */
   .wiki-link {
-    @apply text-primary underline underline-offset-1;
-    @apply hover:text-primary/90;
-    text-decoration-thickness: 2px;
+    @apply text-primary underline underline-offset-2;
+    @apply hover:text-primary/80;
   }
   
   /* Editor styles */
@@ -190,38 +181,38 @@
     @apply py-0.5;
   }
   
-  /* Scrollbar styling - geometric, functional */
+  /* Scrollbar styling */
   ::-webkit-scrollbar {
-    @apply w-3 h-3;
+    @apply w-2 h-2;
   }
   
   ::-webkit-scrollbar-track {
-    @apply bg-secondary;
-    border-left: 1px solid hsl(var(--border));
+    @apply bg-transparent;
   }
   
   ::-webkit-scrollbar-thumb {
-    @apply bg-border;
-    border: 1px solid hsl(var(--border));
+    @apply bg-border rounded-full;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-foreground/20;
+    @apply bg-muted-foreground/30;
   }
 }
 
 @layer utilities {
-  /* Animation utilities - minimal, functional */
+  /* Animation utilities */
   .animate-in {
-    animation: animateIn 0.1s linear;
+    animation: animateIn 0.15s ease-out;
   }
   
   @keyframes animateIn {
     from {
       opacity: 0;
+      transform: translateY(2px);
     }
     to {
       opacity: 1;
+      transform: translateY(0);
     }
   }
 }

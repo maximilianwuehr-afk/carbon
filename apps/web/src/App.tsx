@@ -30,7 +30,6 @@ export function App() {
   const [chatWidth, setChatWidth] = useState(320);
   const [showChat, setShowChat] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [newNotePath, setNewNotePath] = useState<string | null>(null);
 
   useEffect(() => {
     // Check authentication status
@@ -71,7 +70,7 @@ export function App() {
       <div className="flex flex-1 overflow-hidden">
         {/* Left sidebar */}
         <div
-          className="flex flex-col border-r-2 border-border bg-card"
+          className="flex flex-col border-r border-border bg-card"
           style={{ width: sidebarWidth }}
         >
           {/* Folder tree + note list */}
@@ -79,7 +78,6 @@ export function App() {
             <Sidebar
               selectedPath={selectedPath}
               onSelectNote={setSelectedPath}
-              onNewNoteCreated={setNewNotePath}
             />
           </div>
 
@@ -91,7 +89,7 @@ export function App() {
 
         {/* Resizer */}
         <div
-          className="w-0.5 cursor-col-resize bg-border hover:bg-primary"
+          className="w-1 cursor-col-resize hover:bg-primary/20 transition-colors"
           onMouseDown={(e) => {
             const startX = e.clientX;
             const startWidth = sidebarWidth;
@@ -113,12 +111,7 @@ export function App() {
 
         {/* Main editor */}
         <div className="flex-1 overflow-hidden">
-          <Editor
-            path={selectedPath}
-            onNavigate={setSelectedPath}
-            isNewNote={selectedPath === newNotePath}
-            onNewNoteFocused={() => setNewNotePath(null)}
-          />
+          <Editor path={selectedPath} onNavigate={setSelectedPath} />
         </div>
 
         {/* Chat panel */}
@@ -126,7 +119,7 @@ export function App() {
           <>
             {/* Resizer */}
             <div
-              className="w-0.5 cursor-col-resize bg-border hover:bg-primary"
+              className="w-1 cursor-col-resize hover:bg-primary/20 transition-colors"
               onMouseDown={(e) => {
                 const startX = e.clientX;
                 const startWidth = chatWidth;
@@ -147,7 +140,7 @@ export function App() {
             />
 
             <div
-              className="border-l-2 border-border bg-card"
+              className="border-l border-border bg-card"
               style={{ width: chatWidth }}
             >
               <ChatPanel currentNotePath={selectedPath} />

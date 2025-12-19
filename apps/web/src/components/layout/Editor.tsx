@@ -3,19 +3,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { EditorView, basicSetup } from 'codemirror';
 import { markdown } from '@codemirror/lang-markdown';
 import { EditorState } from '@codemirror/state';
-import { EditorSelection } from '@codemirror/state';
 import { Eye, Edit3, Columns, Save } from 'lucide-react';
 
 interface EditorProps {
   path: string | null;
   onNavigate: (path: string) => void;
-  isNewNote?: boolean;
-  onNewNoteFocused?: () => void;
 }
 
 type ViewMode = 'edit' | 'preview' | 'split';
 
-export function Editor({ path, onNavigate, isNewNote = false, onNewNoteFocused }: EditorProps) {
+export function Editor({ path, onNavigate }: EditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('edit');
@@ -109,23 +106,6 @@ export function Editor({ path, onNavigate, isNewNote = false, onNewNoteFocused }
     }
   }, [noteData]);
 
-  // Focus editor when it's a new note
-  useEffect(() => {
-    if (isNewNote && viewRef.current && viewMode === 'edit') {
-      // Small delay to ensure editor is rendered
-      setTimeout(() => {
-        if (viewRef.current) {
-          viewRef.current.focus();
-          // Position cursor at the beginning
-          viewRef.current.dispatch({
-            selection: EditorSelection.cursor(0),
-          });
-          onNewNoteFocused?.();
-        }
-      }, 100);
-    }
-  }, [isNewNote, viewMode, onNewNoteFocused]);
-
   // Save handler
   const handleSave = () => {
     if (!path || !isDirty) return;
@@ -169,9 +149,9 @@ export function Editor({ path, onNavigate, isNewNote = false, onNewNoteFocused }
   return (
     <div className="flex flex-col h-full">
       {/* Editor toolbar */}
-      <div className="flex items-center justify-between px-4 py-3 border-b-2 border-border bg-card">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-card">
         <div className="flex items-center gap-2">
-          <h2 className="font-bold text-lg uppercase tracking-tight">{title}</h2>
+          <h2 className="font-medium text-lg">{title}</h2>
           {isDirty && (
             <span className="text-xs text-muted-foreground">(unsaved)</span>
           )}
@@ -181,10 +161,10 @@ export function Editor({ path, onNavigate, isNewNote = false, onNewNoteFocused }
           {/* View mode buttons */}
           <button
             onClick={() => setViewMode('edit')}
-            className={`p-2 border-2 ${
+            className={`p-1.5 rounded transition-colors ${
               viewMode === 'edit'
-                ? 'bg-secondary text-foreground border-primary'
-                : 'text-muted-foreground border-transparent hover:border-border hover:bg-secondary'
+                ? 'bg-secondary text-foreground'
+                : 'text-muted-foreground hover:bg-secondary/50'
             }`}
             title="Edit"
           >
@@ -192,10 +172,10 @@ export function Editor({ path, onNavigate, isNewNote = false, onNewNoteFocused }
           </button>
           <button
             onClick={() => setViewMode('preview')}
-            className={`p-2 border-2 ${
+            className={`p-1.5 rounded transition-colors ${
               viewMode === 'preview'
-                ? 'bg-secondary text-foreground border-primary'
-                : 'text-muted-foreground border-transparent hover:border-border hover:bg-secondary'
+                ? 'bg-secondary text-foreground'
+                : 'text-muted-foreground hover:bg-secondary/50'
             }`}
             title="Preview"
           >
@@ -203,26 +183,26 @@ export function Editor({ path, onNavigate, isNewNote = false, onNewNoteFocused }
           </button>
           <button
             onClick={() => setViewMode('split')}
-            className={`p-2 border-2 ${
+            className={`p-1.5 rounded transition-colors ${
               viewMode === 'split'
-                ? 'bg-secondary text-foreground border-primary'
-                : 'text-muted-foreground border-transparent hover:border-border hover:bg-secondary'
+                ? 'bg-secondary text-foreground'
+                : 'text-muted-foreground hover:bg-secondary/50'
             }`}
             title="Split view"
           >
             <Columns className="w-4 h-4" />
           </button>
 
-          <div className="w-0.5 h-6 bg-border mx-1" />
+          <div className="w-px h-4 bg-border mx-1" />
 
           {/* Save button */}
           <button
             onClick={handleSave}
             disabled={!isDirty || saveMutation.isPending}
-            className={`p-2 border-2 ${
+            className={`p-1.5 rounded transition-colors ${
               isDirty
-                ? 'text-primary border-primary hover:bg-primary/10'
-                : 'text-muted-foreground border-transparent'
+                ? 'text-primary hover:bg-primary/10'
+                : 'text-muted-foreground'
             }`}
             title="Save (⌘S)"
           >
@@ -245,7 +225,7 @@ export function Editor({ path, onNavigate, isNewNote = false, onNewNoteFocused }
 
         {viewMode === 'split' && (
           <div className="flex h-full">
-            <div ref={editorRef} className="flex-1 border-r-2 border-border" />
+            <div ref={editorRef} className="flex-1 border-r border-border" />
             <div className="flex-1 overflow-y-auto p-4 prose prose-sm max-w-none">
               <MarkdownPreview content={localContent} />
             </div>

@@ -89,11 +89,18 @@ export async function writeNote(
   revision: string;
   updatedAt: string;
 }> {
+  if (!vaultPath) {
+    throw new Error('Vault not initialized. Call initVault() first.');
+  }
+  
   const normalized = normalizePath(notePath);
   const fullPath = join(vaultPath, normalized);
+  const dir = dirname(fullPath);
   
-  // Ensure directory exists
-  await fs.mkdir(dirname(fullPath), { recursive: true });
+  // Ensure directory exists (only if not the vault root itself)
+  if (dir !== vaultPath) {
+    await fs.mkdir(dir, { recursive: true });
+  }
   
   // Write file
   await fs.writeFile(fullPath, markdown, 'utf-8');

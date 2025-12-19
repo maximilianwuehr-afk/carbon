@@ -6,7 +6,7 @@ todos:
     content: "M0: Initialize pnpm monorepo, apps/web, apps/api, packages/core with Turborepo"
     status: completed
   - id: m0-theme
-    content: "M0: Implement Carbon theme (Teenage Engineering + Bauhaus) with shadcn/ui"
+    content: "M0: Implement Carbon theme (Teenage Engineering + Bauhaus) with shadcn/ui - Accent: rgb(253, 185, 47)"
     status: completed
   - id: m0-styleguide
     content: "M0: Build Style Guide page showing all components and spacing rules"
@@ -163,7 +163,7 @@ sequenceDiagram
 
 | **Frontend** | React 19 + Vite | Fast HMR, modern React features |
 
-| **UI** | shadcn/ui + Tailwind CSS | Radix primitives, themeable, Carbon aesthetic |
+| **UI** | shadcn/ui + Tailwind CSS | Radix primitives, themeable, Carbon aesthetic (accent: rgb(253, 185, 47)) |
 
 | **Editor** | CodeMirror 6 | Text-first, extensible, good for wiki-links |
 
@@ -387,6 +387,7 @@ const SyncStateSchema = z.object({
 - Setup apps/api with Hono + Bun
 - Setup packages/core with TypeScript
 - Implement Carbon theme (Teenage Engineering + Bauhaus aesthetic)
+  - Accent color: `rgb(253, 185, 47)`
 - Build Style Guide page showing all components
 - Implement 4-panel layout shell (no functionality)
 

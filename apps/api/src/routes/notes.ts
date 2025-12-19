@@ -94,58 +94,66 @@ notesRoutes.put(
   '/:path{.+}',
   zValidator('json', upsertSchema),
   async (c) => {
-    const path = c.req.param('path');
-    const { markdown, baseRevision } = c.req.valid('json');
-    
-    // Write to filesystem
-    const result = await writeNote(path, markdown);
-    
-    // Update index
-    const db = getDb();
-    const title = extractTitle(markdown, path);
-    const { frontmatter } = parseFrontmatter(markdown);
-    const preview = markdown.slice(0, 200);
-    const id = uuid();
-    
-    db.prepare(
-      `INSERT INTO notes_index (id, path, title, content_preview, revision, updated_at, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)
-       ON CONFLICT(path) DO UPDATE SET
-         title = excluded.title,
-         content_preview = excluded.content_preview,
-         revision = excluded.revision,
-         updated_at = excluded.updated_at`
-    ).run(id, path, title, preview, result.revision, result.updatedAt, new Date().toISOString());
-    
-    // Update backlinks
-    const linkedPaths = getLinkedPaths(markdown);
-    db.prepare('DELETE FROM backlinks WHERE source_path = ?').run(path);
-    
-    const insertBacklink = db.prepare(
-      'INSERT OR IGNORE INTO backlinks (source_path, target_path) VALUES (?, ?)'
-    );
-    for (const target of linkedPaths) {
-      insertBacklink.run(path, target);
+    try {
+      const path = c.req.param('path');
+      const { markdown, baseRevision } = c.req.valid('json');
+      
+      // Write to filesystem
+      const result = await writeNote(path, markdown);
+      
+      // Update index
+      const db = getDb();
+      const title = extractTitle(markdown, path);
+      const { frontmatter } = parseFrontmatter(markdown);
+      const preview = markdown.slice(0, 200);
+      const id = uuid();
+      
+      db.prepare(
+        `INSERT INTO notes_index (id, path, title, content_preview, revision, updated_at, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(path) DO UPDATE SET
+           title = excluded.title,
+           content_preview = excluded.content_preview,
+           revision = excluded.revision,
+           updated_at = excluded.updated_at`
+      ).run(id, path, title, preview, result.revision, result.updatedAt, new Date().toISOString());
+      
+      // Update backlinks
+      const linkedPaths = getLinkedPaths(markdown);
+      db.prepare('DELETE FROM backlinks WHERE source_path = ?').run(path);
+      
+      const insertBacklink = db.prepare(
+        'INSERT OR IGNORE INTO backlinks (source_path, target_path) VALUES (?, ?)'
+      );
+      for (const target of linkedPaths) {
+        insertBacklink.run(path, target);
+      }
+      
+      // Update FTS
+      db.prepare(
+        `INSERT INTO notes_fts (path, title, content)
+         VALUES (?, ?, ?)
+         ON CONFLICT(path) DO UPDATE SET
+           title = excluded.title,
+           content = excluded.content`
+      ).run(path, title, markdown);
+      
+      return c.json({
+        note: {
+          id,
+          path: result.path,
+          title,
+          revision: result.revision,
+          updatedAt: result.updatedAt,
+        },
+      });
+    } catch (error) {
+      console.error('Error creating/updating note:', error);
+      return c.json(
+        { error: 'Failed to create/update note', details: error instanceof Error ? error.message : String(error) },
+        500
+      );
     }
-    
-    // Update FTS
-    db.prepare(
-      `INSERT INTO notes_fts (path, title, content)
-       VALUES (?, ?, ?)
-       ON CONFLICT(path) DO UPDATE SET
-         title = excluded.title,
-         content = excluded.content`
-    ).run(path, title, markdown);
-    
-    return c.json({
-      note: {
-        id,
-        path: result.path,
-        title,
-        revision: result.revision,
-        updatedAt: result.updatedAt,
-      },
-    });
   }
 );
 
