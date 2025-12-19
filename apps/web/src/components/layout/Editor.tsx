@@ -50,10 +50,16 @@ export function Editor({ path, onNavigate }: EditorProps) {
 
   // Initialize CodeMirror
   useEffect(() => {
-    if (!editorRef.current || viewRef.current) return;
+    if (!editorRef.current) return;
+    
+    // Destroy existing editor if it exists
+    if (viewRef.current) {
+      viewRef.current.destroy();
+      viewRef.current = null;
+    }
 
     const state = EditorState.create({
-      doc: '',
+      doc: localContent || '',
       extensions: [
         basicSetup,
         markdown(),
@@ -64,13 +70,15 @@ export function Editor({ path, onNavigate }: EditorProps) {
           }
         }),
         EditorView.theme({
-          '&': { height: '100%' },
-          '.cm-scroller': { overflow: 'auto' },
+          '&': { height: '100%', display: 'flex', flexDirection: 'column' },
+          '.cm-scroller': { overflow: 'auto', flex: 1 },
           '.cm-content': {
             fontFamily: 'JetBrains Mono, monospace',
             fontSize: '14px',
             padding: '16px',
+            minHeight: '100%',
           },
+          '.cm-editor': { height: '100%' },
         }),
       ],
     });
@@ -81,10 +89,12 @@ export function Editor({ path, onNavigate }: EditorProps) {
     });
 
     return () => {
-      viewRef.current?.destroy();
-      viewRef.current = null;
+      if (viewRef.current) {
+        viewRef.current.destroy();
+        viewRef.current = null;
+      }
     };
-  }, []);
+  }, [path, viewMode]); // Re-initialize when path or view mode changes
 
   // Update editor content when note changes
   useEffect(() => {
@@ -214,7 +224,7 @@ export function Editor({ path, onNavigate }: EditorProps) {
       {/* Editor content */}
       <div className="flex-1 overflow-hidden">
         {viewMode === 'edit' && (
-          <div ref={editorRef} className="h-full" />
+          <div ref={editorRef} className="h-full w-full" />
         )}
 
         {viewMode === 'preview' && (
@@ -225,7 +235,7 @@ export function Editor({ path, onNavigate }: EditorProps) {
 
         {viewMode === 'split' && (
           <div className="flex h-full">
-            <div ref={editorRef} className="flex-1 border-r border-border" />
+            <div ref={editorRef} className="flex-1 border-r border-border h-full" />
             <div className="flex-1 overflow-y-auto p-4 prose prose-sm max-w-none">
               <MarkdownPreview content={localContent} />
             </div>
