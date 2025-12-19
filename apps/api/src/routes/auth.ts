@@ -46,9 +46,10 @@ authRoutes.get('/google', (c) => {
     return c.json({ error: 'Google OAuth not configured' }, 500);
   }
   
-  // Use the current request origin for redirect
-  const origin = c.req.header('origin') || c.req.url.split('/').slice(0, 3).join('/');
-  const redirectUri = `${origin}/api/auth/google/callback`;
+  // Construct redirect URI - use HTTPS in production
+  const host = c.req.header('host') || 'carbon-notes.fly.dev';
+  const protocol = c.req.header('x-forwarded-proto') || (config.nodeEnv === 'production' ? 'https' : 'http');
+  const redirectUri = `${protocol}://${host}/api/auth/google/callback`;
   
   const params = new URLSearchParams({
     client_id: config.googleClientId,
@@ -80,9 +81,10 @@ authRoutes.get('/google/callback', async (c) => {
   
     const config = getConfig();
     
-    // Use the current request origin for redirect
-    const origin = c.req.header('origin') || c.req.url.split('/').slice(0, 3).join('/');
-    const redirectUri = `${origin}/api/auth/google/callback`;
+    // Construct redirect URI - use HTTPS in production
+    const host = c.req.header('host') || 'carbon-notes.fly.dev';
+    const protocol = c.req.header('x-forwarded-proto') || (config.nodeEnv === 'production' ? 'https' : 'http');
+    const redirectUri = `${protocol}://${host}/api/auth/google/callback`;
     
     try {
       // Exchange code for tokens
