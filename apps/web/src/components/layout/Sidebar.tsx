@@ -14,9 +14,10 @@ import { notesApi } from '../../lib/api';
 interface SidebarProps {
   selectedPath: string | null;
   onSelectNote: (path: string) => void;
+  onNewNoteCreated?: (path: string) => void;
 }
 
-export function Sidebar({ selectedPath, onSelectNote }: SidebarProps) {
+export function Sidebar({ selectedPath, onSelectNote, onNewNoteCreated }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     new Set(['Daily notes', 'People', 'Meetings'])
@@ -38,16 +39,35 @@ export function Sidebar({ selectedPath, onSelectNote }: SidebarProps) {
     onSuccess: (data, path) => {
       queryClient.invalidateQueries({ queryKey: ['tree'] });
       onSelectNote(path);
+      onNewNoteCreated?.(path);
     },
   });
 
-  const handleCreateNote = () => {
-    const noteName = prompt('Enter note name:');
-    if (!noteName) return;
+  const handleCreateNote = async () => {
+    // Generate a unique note name
+    const tree: TreeNode[] = treeData?.tree || [];
+    const existingPaths = new Set<string>();
     
-    // Ensure it ends with .md
-    const path = noteName.endsWith('.md') ? noteName : `${noteName}.md`;
-    createNoteMutation.mutate(path);
+    const collectPaths = (nodes: TreeNode[]) => {
+      for (const node of nodes) {
+        if (node.type === 'note') {
+          existingPaths.add(node.path);
+        }
+        if (node.children) {
+          collectPaths(node.children);
+        }
+      }
+    };
+    collectPaths(tree);
+    
+    let noteName = 'Untitled.md';
+    let counter = 1;
+    while (existingPaths.has(noteName)) {
+      noteName = `Untitled ${counter}.md`;
+      counter++;
+    }
+    
+    createNoteMutation.mutate(noteName);
   };
 
   const tree: TreeNode[] = treeData?.tree || [];
@@ -73,8 +93,8 @@ export function Sidebar({ selectedPath, onSelectNote }: SidebarProps) {
           <button
             onClick={() => toggleFolder(node.path)}
             className={`
-              w-full flex items-center gap-1.5 py-1.5 px-2 text-sm
-              hover:bg-secondary/50 transition-colors text-left
+              w-full flex items-center gap-1.5 py-2 px-2 text-sm font-medium
+              hover:bg-secondary border-l-2 border-transparent hover:border-primary text-left
             `}
             style={{ paddingLeft }}
           >
@@ -104,9 +124,9 @@ export function Sidebar({ selectedPath, onSelectNote }: SidebarProps) {
           key={node.path}
           onClick={() => onSelectNote(node.path)}
           className={`
-            w-full flex items-center gap-1.5 py-1.5 px-2 text-sm
-            hover:bg-secondary/50 transition-colors text-left
-            ${isSelected ? 'bg-secondary text-foreground' : ''}
+            w-full flex items-center gap-1.5 py-2 px-2 text-sm font-medium
+            hover:bg-secondary border-l-2 border-transparent hover:border-primary text-left
+            ${isSelected ? 'bg-secondary text-foreground border-l-2 border-primary' : ''}
           `}
           style={{ paddingLeft: paddingLeft + 20 }}
         >
@@ -122,22 +142,22 @@ export function Sidebar({ selectedPath, onSelectNote }: SidebarProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Search + New note */}
-      <div className="p-2 border-b border-border">
+      <div className="p-2 border-b-2 border-border">
         <div className="flex gap-1">
           <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search notes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 text-sm bg-secondary border-0 rounded focus:ring-1 focus:ring-primary"
+              className="w-full pl-9 pr-3 py-2 text-sm bg-secondary border-2 border-border focus:border-primary focus:ring-2 focus:ring-primary"
             />
           </div>
           <button
             onClick={handleCreateNote}
             disabled={createNoteMutation.isPending}
-            className="p-1.5 rounded hover:bg-secondary transition-colors disabled:opacity-50"
+            className="p-2 border-2 border-border hover:border-primary hover:bg-secondary disabled:opacity-50"
             title="New note"
           >
             <Plus className="w-4 h-4" />
