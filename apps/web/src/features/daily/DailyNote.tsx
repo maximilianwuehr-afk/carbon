@@ -274,7 +274,8 @@ function formatAgenda(events: any[]): string {
       
       // Create meeting link (path matches /wuehr pattern)
       const safeTitle = (event.title || 'Meeting').replace(/[<>:"/\\|?*]/g, '-');
-      const meetingPath = `Meetings/${date.toISOString().slice(0, 7)}/${safeTitle} ~${event.id}`;
+      const eventDate = new Date(event.start);
+      const meetingPath = `Meetings/${eventDate.toISOString().slice(0, 7)}/${safeTitle} ~${event.id}`;
       
       let line = `- ${time} – [[${meetingPath}|${event.title}]]`;
       if (attendees) {
