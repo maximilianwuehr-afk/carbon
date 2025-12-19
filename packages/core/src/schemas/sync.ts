@@ -76,9 +76,9 @@ export const SyncPushRequestSchema = z.object({
 export type SyncPushRequest = z.infer<typeof SyncPushRequestSchema>;
 
 /**
- * Merge result for a single note
+ * Merge result for a single note in sync operations
  */
-export const MergeResultSchema = z.object({
+export const SyncMergeResultSchema = z.object({
   path: z.string(),
   status: z.enum(['merged', 'conflict', 'accepted']),
   note: NoteSchema.optional(),
@@ -86,13 +86,13 @@ export const MergeResultSchema = z.object({
   conflictPath: z.string().optional(),
 });
 
-export type MergeResult = z.infer<typeof MergeResultSchema>;
+export type SyncMergeResult = z.infer<typeof SyncMergeResultSchema>;
 
 /**
  * Push response - server returns merge results
  */
 export const SyncPushResponseSchema = z.object({
-  results: z.array(MergeResultSchema),
+  results: z.array(SyncMergeResultSchema),
   cursor: z.string(),
 });
 
