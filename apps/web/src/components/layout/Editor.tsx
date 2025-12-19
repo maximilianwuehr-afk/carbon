@@ -48,16 +48,16 @@ export function Editor({ path, onNavigate }: EditorProps) {
     },
   });
 
-  // Autosave with debouncing
+  // Autosave with debouncing (only when user makes changes)
   useEffect(() => {
-    if (!path || !isDirty || !localContent) return;
+    if (!path || !isDirty || !localContent || saveMutation.isPending) return;
 
     const timeoutId = setTimeout(() => {
       saveMutation.mutate({ path, markdown: localContent });
     }, 1000); // Save 1 second after user stops typing
 
     return () => clearTimeout(timeoutId);
-  }, [localContent, path, isDirty]);
+  }, [localContent, path, isDirty, saveMutation]);
 
   // Initialize CodeMirror
   useEffect(() => {
