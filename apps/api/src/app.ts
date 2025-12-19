@@ -29,7 +29,14 @@ app.use('*', logger());
 app.use(
   '*',
   cors({
-    origin: '*', // Allow all origins
+    origin: (origin) => {
+      // Allow requests from the app domain or any origin in development
+      if (!origin) return '*';
+      if (origin.includes('carbon-notes.fly.dev') || origin.includes('localhost')) {
+        return origin;
+      }
+      return '*';
+    },
     credentials: true,
   })
 );

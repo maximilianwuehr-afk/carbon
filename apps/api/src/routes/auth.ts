@@ -3,6 +3,7 @@
  */
 
 import { Hono } from 'hono';
+import { getCookie, setCookie } from 'hono/cookie';
 import { getDb } from '../db/index.js';
 import { getConfig } from '../config.js';
 import { randomUUID } from 'crypto';
@@ -124,10 +125,17 @@ authRoutes.get('/google/callback', async (c) => {
     // Create session
     const sessionId = createSession('google');
     
-    // Set session cookie and redirect
-    return c.redirect('/', 302, {
-      'Set-Cookie': `session=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${30 * 24 * 60 * 60}; Secure`,
+    // Set session cookie using Hono's cookie helper
+    setCookie(c, 'session', sessionId, {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'Lax',
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+      secure: true,
     });
+    
+    // Redirect to home
+    return c.redirect('/');
   } catch (error) {
     console.error('OAuth callback error:', error);
     return c.json({ error: 'Authentication failed' }, 500);
@@ -136,7 +144,8 @@ authRoutes.get('/google/callback', async (c) => {
 
 // Check auth status
 authRoutes.get('/status', (c) => {
-  const sessionId = c.req.cookie('session');
+  const sessionId = getCookie(c, 'session');
+  console.log('Auth status check - sessionId:', sessionId ? 'present' : 'missing');
   const isAuthenticated = validateSession(sessionId);
   
   if (!isAuthenticated) {
@@ -159,14 +168,21 @@ authRoutes.get('/status', (c) => {
 
 // Logout
 authRoutes.post('/logout', (c) => {
-  const sessionId = c.req.cookie('session');
+  const sessionId = getCookie(c, 'session');
   
   if (sessionId) {
     const db = getDb();
     db.prepare('DELETE FROM sessions WHERE id = ?').run(sessionId);
   }
   
-  return c.json({ success: true }, 200, {
-    'Set-Cookie': 'session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
+  // Clear cookie
+  setCookie(c, 'session', '', {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'Lax',
+    maxAge: 0,
+    secure: true,
   });
+  
+  return c.json({ success: true });
 });
