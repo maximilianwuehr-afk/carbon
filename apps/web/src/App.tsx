@@ -30,6 +30,7 @@ export function App() {
   const [chatWidth, setChatWidth] = useState(320);
   const [showChat, setShowChat] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [newNotePath, setNewNotePath] = useState<string | null>(null);
 
   useEffect(() => {
     // Check authentication status
