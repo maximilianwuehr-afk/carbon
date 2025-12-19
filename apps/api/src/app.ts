@@ -26,6 +26,16 @@ export const app = new Hono();
 
 // Middleware
 app.use('*', logger());
+
+// Set Permissions-Policy header to avoid browser warnings about unsupported features
+app.use('*', async (c, next) => {
+  await next();
+  c.header(
+    'Permissions-Policy',
+    'geolocation=(), microphone=(), camera=(), browsing-topics=()'
+  );
+});
+
 app.use(
   '*',
   cors({
