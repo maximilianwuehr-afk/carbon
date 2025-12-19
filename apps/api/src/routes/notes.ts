@@ -129,14 +129,15 @@ notesRoutes.put(
         insertBacklink.run(path, target);
       }
       
-      // Update FTS
+      // Update FTS - delete old entry first, then insert new one
+      // (FTS5 with external content requires this approach)
+      db.prepare('DELETE FROM notes_fts WHERE path = ?').run(path);
       db.prepare(
-        `INSERT INTO notes_fts (path, title, content)
-         VALUES (?, ?, ?)
-         ON CONFLICT(path) DO UPDATE SET
-           title = excluded.title,
-           content = excluded.content`
-      ).run(path, title, markdown);
+        `INSERT INTO notes_fts (rowid, path, title, content)
+         SELECT rowid, path, title, ? 
+         FROM notes_index 
+         WHERE path = ?`
+      ).run(markdown, path);
       
       return c.json({
         note: {

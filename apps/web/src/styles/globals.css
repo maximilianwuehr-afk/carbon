@@ -10,7 +10,7 @@
  * - Generous whitespace
  * - Bold typographic hierarchy
  * - Minimal chrome
- * - Monochrome base + one strong accent (Orange #FF6B35)
+ * - Monochrome base + one strong accent (rgb(253, 185, 47))
  * - Grotesk + mono font pairing
  * - Crisp controls
  * - Subtle micro-interactions
@@ -28,8 +28,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 4%;
     
-    /* Primary: Strong orange accent */
-    --primary: 18 100% 60%;
+    /* Primary: Strong accent (rgb(253, 185, 47)) */
+    --primary: 40 98% 59%;
     --primary-foreground: 0 0% 100%;
     
     --secondary: 0 0% 96%;
@@ -38,7 +38,7 @@
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
     
-    --accent: 18 100% 60%;
+    --accent: 40 98% 59%;
     --accent-foreground: 0 0% 100%;
     
     --destructive: 0 84% 60%;
@@ -46,7 +46,7 @@
     
     --border: 0 0% 90%;
     --input: 0 0% 90%;
-    --ring: 18 100% 60%;
+    --ring: 40 98% 59%;
     
     --radius: 4px;
   }
@@ -61,7 +61,7 @@
     --popover: 0 0% 8%;
     --popover-foreground: 0 0% 98%;
     
-    --primary: 18 100% 60%;
+    --primary: 40 98% 59%;
     --primary-foreground: 0 0% 4%;
     
     --secondary: 0 0% 15%;
@@ -70,7 +70,7 @@
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 64%;
     
-    --accent: 18 100% 60%;
+    --accent: 40 98% 59%;
     --accent-foreground: 0 0% 4%;
     
     --destructive: 0 62% 30%;
@@ -78,7 +78,7 @@
     
     --border: 0 0% 20%;
     --input: 0 0% 20%;
-    --ring: 18 100% 60%;
+    --ring: 40 98% 59%;
   }
 }
 

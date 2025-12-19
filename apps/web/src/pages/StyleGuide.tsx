@@ -13,7 +13,7 @@ import { Card } from '../components/ui/Card';
  * - Generous whitespace
  * - Bold typographic hierarchy
  * - Minimal chrome
- * - Monochrome base + one strong accent (Orange)
+ * - Monochrome base + one strong accent (rgb(253, 185, 47))
  */
 export function StyleGuide() {
   return (
