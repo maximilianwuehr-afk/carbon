@@ -29,7 +29,7 @@ app.use('*', logger());
 app.use(
   '*',
   cors({
-    origin: true, // Allow all origins in production
+    origin: '*', // Allow all origins
     credentials: true,
   })
 );
