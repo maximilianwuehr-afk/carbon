@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { EditorView, basicSetup } from 'codemirror';
 import { markdown } from '@codemirror/lang-markdown';
 import { EditorState } from '@codemirror/state';
-import { Eye, Edit3, Columns, Save } from 'lucide-react';
+import { Eye, Edit3, Columns } from 'lucide-react';
 
 interface EditorProps {
   path: string | null;
@@ -47,6 +47,17 @@ export function Editor({ path, onNavigate }: EditorProps) {
       queryClient.invalidateQueries({ queryKey: ['tree'] });
     },
   });
+
+  // Autosave with debouncing
+  useEffect(() => {
+    if (!path || !isDirty || !localContent) return;
+
+    const timeoutId = setTimeout(() => {
+      saveMutation.mutate({ path, markdown: localContent });
+    }, 1000); // Save 1 second after user stops typing
+
+    return () => clearTimeout(timeoutId);
+  }, [localContent, path, isDirty]);
 
   // Initialize CodeMirror
   useEffect(() => {
@@ -116,24 +127,6 @@ export function Editor({ path, onNavigate }: EditorProps) {
     }
   }, [noteData]);
 
-  // Save handler
-  const handleSave = () => {
-    if (!path || !isDirty) return;
-    saveMutation.mutate({ path, markdown: localContent });
-  };
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
-        e.preventDefault();
-        handleSave();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [path, localContent, isDirty]);
 
   if (!path) {
     return (
@@ -162,8 +155,11 @@ export function Editor({ path, onNavigate }: EditorProps) {
       <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-card">
         <div className="flex items-center gap-2">
           <h2 className="font-medium text-lg">{title}</h2>
-          {isDirty && (
-            <span className="text-xs text-muted-foreground">(unsaved)</span>
+          {saveMutation.isPending && (
+            <span className="text-xs text-muted-foreground">Saving...</span>
+          )}
+          {!isDirty && !saveMutation.isPending && localContent && (
+            <span className="text-xs text-muted-foreground">Saved</span>
           )}
         </div>
 
@@ -201,22 +197,6 @@ export function Editor({ path, onNavigate }: EditorProps) {
             title="Split view"
           >
             <Columns className="w-4 h-4" />
-          </button>
-
-          <div className="w-px h-4 bg-border mx-1" />
-
-          {/* Save button */}
-          <button
-            onClick={handleSave}
-            disabled={!isDirty || saveMutation.isPending}
-            className={`p-1.5 rounded transition-colors ${
-              isDirty
-                ? 'text-primary hover:bg-primary/10'
-                : 'text-muted-foreground'
-            }`}
-            title="Save (⌘S)"
-          >
-            <Save className="w-4 h-4" />
           </button>
         </div>
       </div>
