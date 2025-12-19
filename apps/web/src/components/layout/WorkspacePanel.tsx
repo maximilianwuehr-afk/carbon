@@ -48,14 +48,14 @@ export function WorkspacePanel() {
 function CalendarTab() {
   const today = new Date().toISOString().split('T')[0];
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<{ events: any[] } | { needsAuth: true; events: [] }>({
     queryKey: ['calendar-events', today],
     queryFn: async () => {
       try {
         return await calendarApi.events(today);
       } catch (err: any) {
         if (err.message?.includes('401') || err.message?.includes('Not authenticated')) {
-          return { needsAuth: true, events: [] };
+          return { needsAuth: true as const, events: [] };
         }
         throw err;
       }
@@ -68,7 +68,7 @@ function CalendarTab() {
     );
   }
 
-  if (data?.needsAuth) {
+  if (data && 'needsAuth' in data && data.needsAuth) {
     return (
       <div className="p-4">
         <p className="text-sm text-muted-foreground mb-3">
@@ -131,14 +131,14 @@ function CalendarTab() {
 }
 
 function DriveTab() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<{ files: any[] } | { needsAuth: true; files: [] }>({
     queryKey: ['drive-recent'],
     queryFn: async () => {
       try {
         return await driveApi.recent();
       } catch (err: any) {
         if (err.message?.includes('401') || err.message?.includes('Not authenticated')) {
-          return { needsAuth: true, files: [] };
+          return { needsAuth: true as const, files: [] };
         }
         throw err;
       }
@@ -151,7 +151,7 @@ function DriveTab() {
     );
   }
 
-  if (data?.needsAuth) {
+  if (data && 'needsAuth' in data && data.needsAuth) {
     return (
       <div className="p-4">
         <p className="text-sm text-muted-foreground mb-3">
