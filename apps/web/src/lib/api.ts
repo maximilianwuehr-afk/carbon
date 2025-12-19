@@ -11,6 +11,7 @@ export async function fetchApi<T>(
   const url = `${API_BASE}${endpoint}`;
   const response = await fetch(url, {
     ...options,
+    credentials: 'include', // Include cookies for session management
     headers: {
       'Content-Type': 'application/json',
       ...options?.headers,
