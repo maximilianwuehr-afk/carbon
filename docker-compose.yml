@@ -1,0 +1,40 @@
+# Carbon Docker Compose for local development
+# Run: docker-compose up
+
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/data
+    environment:
+      - NODE_ENV=development
+      - VAULT_PATH=/data/vault
+      - DATABASE_PATH=/data/carbon.db
+      - PORT=3000
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=http://localhost:3000/auth/google/callback
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - SESSION_SECRET=${SESSION_SECRET:-dev-secret}
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+    environment:
+      - VITE_API_URL=http://localhost:3000
+    restart: unless-stopped
+
+volumes:
+  data:

@@ -1,0 +1,52 @@
+{
+  "name": "@carbon/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schemas": {
+      "types": "./dist/schemas/index.d.ts",
+      "import": "./dist/schemas/index.js"
+    },
+    "./merge": {
+      "types": "./dist/merge/index.d.ts",
+      "import": "./dist/merge/index.js"
+    },
+    "./sync": {
+      "types": "./dist/sync/index.d.ts",
+      "import": "./dist/sync/index.js"
+    },
+    "./vault": {
+      "types": "./dist/vault/index.d.ts",
+      "import": "./dist/vault/index.js"
+    },
+    "./links": {
+      "types": "./dist/links/index.d.ts",
+      "import": "./dist/links/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "diff-match-patch": "^1.0.5",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/diff-match-patch": "^1.0.36",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

@@ -1,0 +1,47 @@
+# Carbon Fly.io Configuration
+# See: https://fly.io/docs/reference/configuration/
+
+app = "carbon-notes"
+primary_region = "fra"
+
+[build]
+  dockerfile = "apps/api/Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  VAULT_PATH = "/data/vault"
+  DATABASE_PATH = "/data/carbon.db"
+  PORT = "3000"
+
+# Persistent storage for vault and database
+[mounts]
+  source = "vault_data"
+  destination = "/data"
+
+[[services]]
+  internal_port = 3000
+  protocol = "tcp"
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [services.concurrency]
+    type = "requests"
+    hard_limit = 250
+    soft_limit = 200
+
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
+    force_https = true
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
+
+  [[services.http_checks]]
+    interval = "10s"
+    timeout = "2s"
+    grace_period = "5s"
+    method = "GET"
+    path = "/health"
