@@ -5,8 +5,38 @@
 import { Hono } from 'hono';
 import { getDb } from '../db/index.js';
 import { getConfig } from '../config.js';
+import { randomUUID } from 'crypto';
 
 export const authRoutes = new Hono();
+
+// Helper to create a session
+function createSession(provider: string): string {
+  const db = getDb();
+  const sessionId = randomUUID();
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+  
+  db.prepare(
+    `INSERT INTO sessions (id, provider, created_at, expires_at)
+     VALUES (?, ?, ?, ?)`
+  ).run(sessionId, provider, now.toISOString(), expiresAt.toISOString());
+  
+  return sessionId;
+}
+
+// Helper to validate a session
+export function validateSession(sessionId: string | undefined): boolean {
+  if (!sessionId) return false;
+  
+  const db = getDb();
+  const row = db
+    .prepare('SELECT expires_at FROM sessions WHERE id = ?')
+    .get(sessionId) as { expires_at: string } | undefined;
+  
+  if (!row) return false;
+  
+  return new Date(row.expires_at) > new Date();
+}
 
 // Initiate Google OAuth
 authRoutes.get('/google', (c) => {
@@ -16,9 +46,13 @@ authRoutes.get('/google', (c) => {
     return c.json({ error: 'Google OAuth not configured' }, 500);
   }
   
+  // Use the current request origin for redirect
+  const origin = c.req.header('origin') || c.req.url.split('/').slice(0, 3).join('/');
+  const redirectUri = `${origin}/api/auth/google/callback`;
+  
   const params = new URLSearchParams({
     client_id: config.googleClientId,
-    redirect_uri: config.googleRedirectUri,
+    redirect_uri: redirectUri,
     response_type: 'code',
     scope: [
       'https://www.googleapis.com/auth/calendar.readonly',
@@ -44,21 +78,25 @@ authRoutes.get('/google/callback', async (c) => {
     return c.json({ error: 'No authorization code received' }, 400);
   }
   
-  const config = getConfig();
-  
-  try {
-    // Exchange code for tokens
-    const response = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        code,
-        client_id: config.googleClientId,
-        client_secret: config.googleClientSecret,
-        redirect_uri: config.googleRedirectUri,
-        grant_type: 'authorization_code',
-      }),
-    });
+    const config = getConfig();
+    
+    // Use the current request origin for redirect
+    const origin = c.req.header('origin') || c.req.url.split('/').slice(0, 3).join('/');
+    const redirectUri = `${origin}/api/auth/google/callback`;
+    
+    try {
+      // Exchange code for tokens
+      const response = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          code,
+          client_id: config.googleClientId,
+          client_secret: config.googleClientSecret,
+          redirect_uri: redirectUri,
+          grant_type: 'authorization_code',
+        }),
+      });
     
     if (!response.ok) {
       const error = await response.text();
@@ -81,8 +119,13 @@ authRoutes.get('/google/callback', async (c) => {
          updated_at = excluded.updated_at`
     ).run('google', tokens.access_token, tokens.refresh_token || null, expiresAt, new Date().toISOString());
     
-    // Redirect back to app
-    return c.redirect('/?auth=success');
+    // Create session
+    const sessionId = createSession('google');
+    
+    // Set session cookie and redirect
+    return c.redirect('/', 302, {
+      'Set-Cookie': `session=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${30 * 24 * 60 * 60}; Secure`,
+    });
   } catch (error) {
     console.error('OAuth callback error:', error);
     return c.json({ error: 'Authentication failed' }, 500);
@@ -91,27 +134,37 @@ authRoutes.get('/google/callback', async (c) => {
 
 // Check auth status
 authRoutes.get('/status', (c) => {
+  const sessionId = c.req.cookie('session');
+  const isAuthenticated = validateSession(sessionId);
+  
+  if (!isAuthenticated) {
+    return c.json({ authenticated: false });
+  }
+  
   const db = getDb();
   const row = db
     .prepare('SELECT provider, expires_at FROM oauth_tokens WHERE provider = ?')
     .get('google') as { provider: string; expires_at: string } | undefined;
   
-  if (!row) {
-    return c.json({ authenticated: false });
-  }
-  
-  const isValid = new Date(row.expires_at) > new Date();
+  const tokenValid = row && new Date(row.expires_at) > new Date();
   
   return c.json({
     authenticated: true,
     provider: 'google',
-    valid: isValid,
+    valid: tokenValid,
   });
 });
 
 // Logout
 authRoutes.post('/logout', (c) => {
-  const db = getDb();
-  db.prepare('DELETE FROM oauth_tokens WHERE provider = ?').run('google');
-  return c.json({ success: true });
+  const sessionId = c.req.cookie('session');
+  
+  if (sessionId) {
+    const db = getDb();
+    db.prepare('DELETE FROM sessions WHERE id = ?').run(sessionId);
+  }
+  
+  return c.json({ success: true }, 200, {
+    'Set-Cookie': 'session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
+  });
 });

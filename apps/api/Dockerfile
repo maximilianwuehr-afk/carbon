@@ -10,6 +10,7 @@ RUN corepack enable && corepack prepare pnpm@9.15.1 --activate
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY packages/core/package.json packages/core/
 COPY apps/api/package.json apps/api/
+COPY apps/web/package.json apps/web/
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
@@ -17,11 +18,13 @@ RUN pnpm install --frozen-lockfile
 # Copy source files
 COPY packages/core packages/core
 COPY apps/api apps/api
+COPY apps/web apps/web
 COPY tsconfig.json ./
 
 # Build
 RUN pnpm --filter @carbon/core build
 RUN pnpm --filter @carbon/api build
+RUN pnpm --filter @carbon/web build
 
 # Production stage
 FROM node:22-alpine
@@ -36,6 +39,7 @@ COPY --from=builder /app/packages/core/dist packages/core/dist
 COPY --from=builder /app/packages/core/package.json packages/core/
 COPY --from=builder /app/apps/api/dist apps/api/dist
 COPY --from=builder /app/apps/api/package.json apps/api/
+COPY --from=builder /app/apps/web/dist apps/web/dist
 
 # Copy workspace files for production dependencies
 COPY pnpm-workspace.yaml package.json ./

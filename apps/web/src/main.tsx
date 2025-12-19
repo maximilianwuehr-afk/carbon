@@ -1,8 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { App } from './App';
+import { Login } from './pages/Login';
 import { StyleGuide } from './pages/StyleGuide';
 import './styles/globals.css';
 
@@ -20,6 +21,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
+          <Route path="/login" element={<Login />} />
           <Route path="/" element={<App />} />
           <Route path="/style-guide" element={<StyleGuide />} />
           <Route path="/note/*" element={<App />} />

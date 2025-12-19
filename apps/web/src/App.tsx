@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sidebar } from './components/layout/Sidebar';
 import { Editor } from './components/layout/Editor';
 import { ChatPanel } from './components/layout/ChatPanel';
 import { WorkspacePanel } from './components/layout/WorkspacePanel';
 import { Header } from './components/layout/Header';
+import { authApi } from './lib/api';
 
 /**
  * Main application layout.
@@ -22,10 +24,42 @@ import { Header } from './components/layout/Header';
  * └────────────────┴──────────────────────────────────┴─────────────────────┘
  */
 export function App() {
+  const navigate = useNavigate();
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [sidebarWidth, setSidebarWidth] = useState(280);
   const [chatWidth, setChatWidth] = useState(320);
   const [showChat, setShowChat] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    // Check authentication status
+    authApi
+      .status()
+      .then((status) => {
+        setIsAuthenticated(status.authenticated);
+        if (!status.authenticated) {
+          navigate('/login');
+        }
+      })
+      .catch(() => {
+        setIsAuthenticated(false);
+        navigate('/login');
+      });
+  }, [navigate]);
+
+  // Show nothing while checking auth
+  if (isAuthenticated === null) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
+  // Redirect handled by useEffect, but show nothing if not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col h-screen bg-background">

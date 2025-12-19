@@ -80,6 +80,14 @@ export async function initDatabase(dbPath: string): Promise<void> {
       updated_at TEXT NOT NULL
     );
 
+    -- User sessions
+    CREATE TABLE IF NOT EXISTS sessions (
+      id TEXT PRIMARY KEY,
+      provider TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      expires_at TEXT NOT NULL
+    );
+
     -- Indexes
     CREATE INDEX IF NOT EXISTS idx_notes_updated_at ON notes_index(updated_at);
     CREATE INDEX IF NOT EXISTS idx_backlinks_target ON backlinks(target_path);
